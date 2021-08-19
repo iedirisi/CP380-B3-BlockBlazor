@@ -13,26 +13,17 @@ namespace CP380_B3_BlockBlazor.Data
 {
     public class PendingTransactionService
     {
-        // TODO: Add variables for the dependency-injected resources
-        //       - httpClient
-        //       - configuration
-        //
-        static HttpClient httpClient;
-        private readonly IConfiguration conf;
-        private JsonSerializerOptions conf = new JsonSerializerOptions(JsonSerializerDefaults.Web);
-        //
-        // TODO: Add a constructor with IConfiguration and IHttpClientFactory arguments
-        //
-        public PendingTransactionService(IHttpClientFactory httpClientFactory, IConfiguration Config)
-        { 
-            httpClient = httpClientFactory.CreateClient();
-            conf = Configure.GetSection("PayloadService");
+        static HttpClient _httpClient;
+        private readonly IConfiguration _configure;
+        private readonly JsonSerializerOptions _config = new JsonSerializerOptions(JsonSerializerDefaults.Web);
+
+        public PendingTransactionService(IHttpClientFactory HttpClientFactory, IConfiguration Configure)
+        {
+            _httpClient = HttpClientFactory.CreateClient();
+            _configure = Configure.GetSection("PayloadService");
         }
-        //
-        // TODO: Add an async method that returns an IEnumerable<Payload> (list of Payloads)
-        //       from the web service
-        //
-            public async Task<IEnumerable<Payload>> GetPayloadsAsync()
+
+        public async Task<IEnumerable<Payload>> GetPayloadsAsync()
         {
             var data = await _httpClient.GetAsync(_configure["url"]);
 
@@ -45,12 +36,8 @@ namespace CP380_B3_BlockBlazor.Data
 
             return Array.Empty<Payload>();
         }
-        //
-        // TODO: Add an async method that returns an HttpResponseMessage
-        //       and accepts a Payload object.
-        //       This method should POST the Payload to the web API server
-        //
-                public async Task<HttpResponseMessage> AddPayloadAsync(Payload payload)
+
+        public async Task<HttpResponseMessage> AddPayloadAsync(Payload payload)
         {
             var content = new StringContent(
                     JsonSerializer.Serialize(payload, _config),

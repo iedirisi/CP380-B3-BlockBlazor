@@ -11,38 +11,43 @@ namespace CP380_B3_BlockBlazor.Data
 {
     public class BlockService
     {
-        // TODO: Add variables for the dependency-injected resources
-        //       - httpClient
-        //       - configuration
-        //
-        static HttpClient HttpClient;
-        private readonly IConfiguration config;
-        private JsonSerializerOptions options;
-
-        //
-        // TODO: Add a constructor with IConfiguration and IHttpClientFactory arguments
-        //
-        public BlockService(IHttpClientFactory httpClientFactory, IConfiguration configuration)
-        { 
-            httpClient = httpClientFactory.CreateClient();
-            conf = configuration.GetSection("BlockService");
+        static HttpClient _httpClient;
+        private readonly IConfiguration _configure;
+        private readonly JsonSerializerOptions JsonSerializerOptions = new JsonSerializerOptions(JsonSerializerDefaults.Web);
+        public BlockService(IHttpClientFactory HttpClientFactory, IConfiguration Configure)
+        {
+            _httpClient = HttpClientFactory.CreateClient();
+            _configure = Configure.GetSection("BlockService");
         }
-        //
-        // TODO: Add an async method that returns an IEnumerable<Block> (list of Blocks)
-        //       from the web service
-        //
-        public async Task<IList<Block>> GetBlocks()
-        { 
-            var result = await HttpClient.GetAsync(config["url"]);
-            if(result.IsSuccessStatusCode)
-            { 
-                JsonSerializerOptions option = new (JsonSerializerDefaults.Web);
-                return await JsonSerializer.DeserializeAsync<IList<Blocks>>
-                    (await response.Content.ReadAsStreamAsync(),options);
+
+        public async Task<IEnumerable<Block>> GetBlocksAsync()
+        {
+            var data = await _httpClient.GetAsync(_configure["url"]);
+
+            if (data.IsSuccessStatusCode)
+            {
+                JsonSerializerOptions config = new JsonSerializerOptions(JsonSerializerDefaults.Web);
+                return await JsonSerializer.DeserializeAsync<IEnumerable<Block>>(
+                        await data.Content.ReadAsStreamAsync(), config
+                    );
             }
-            return Array.Empty<Block>();
-        }
 
+            return Array.Empty<Block>();
+
+        }
+        public async Task<Block> SubmitNewBlockAsync(Block block)
+        {
+            var content = new StringContent(
+               JsonSerializer.Serialize(block, JsonSerializerOptions),
+               System.Text.Encoding.UTF8,
+               "application/json"
+               );
+
+            var res = await _httpClient.PostAsync(_configure["url"], content);
+            if (res.IsSuccessStatusCode)
+                return block;
+            else
+                return null;
+        }
     }
-}
 }
